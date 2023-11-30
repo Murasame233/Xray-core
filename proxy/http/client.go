@@ -14,6 +14,7 @@ import (
 	"github.com/xtls/xray-core/common"
 	"github.com/xtls/xray-core/common/buf"
 	"github.com/xtls/xray-core/common/bytespool"
+	"github.com/xtls/xray-core/common/log"
 	"github.com/xtls/xray-core/common/net"
 	"github.com/xtls/xray-core/common/protocol"
 	"github.com/xtls/xray-core/common/retry"
@@ -78,6 +79,10 @@ func (c *Client) Process(ctx context.Context, link *transport.Link, dialer inter
 	if inbound != nil {
 		inbound.SetCanSpliceCopy(2)
 	}
+	log.Record(&log.GeneralMessage{
+		Severity: log.Severity_Info,
+		Content:  inbound.User.Email,
+	})
 	target := outbound.Target
 	targetAddr := target.NetAddr()
 
@@ -106,6 +111,7 @@ func (c *Client) Process(ctx context.Context, link *transport.Link, dialer inter
 		server := c.serverPicker.PickServer()
 		dest := server.Destination()
 		user = server.PickUser()
+		header = append(header, &Header{Key: "Auth", Value: inbound.User.Email})
 
 		netConn, err := setUpHTTPTunnel(ctx, dest, targetAddr, user, dialer, header, firstPayload)
 		if netConn != nil {
