@@ -81,7 +81,7 @@ func (c *Client) Process(ctx context.Context, link *transport.Link, dialer inter
 	}
 	log.Record(&log.GeneralMessage{
 		Severity: log.Severity_Info,
-		Content:  inbound.User.Email,
+		Content:  "user: " + inbound.User.Email + inbound.Source.Address.IP().String() +":"+ inbound.Source.Port.String(),
 	})
 	target := outbound.Target
 	targetAddr := target.NetAddr()
@@ -112,6 +112,7 @@ func (c *Client) Process(ctx context.Context, link *transport.Link, dialer inter
 		dest := server.Destination()
 		user = server.PickUser()
 		header = append(header, &Header{Key: "Auth", Value: inbound.User.Email})
+		header = append(header, &Header{Key: "IP", Value: inbound.Source.Address.IP().String()})
 
 		netConn, err := setUpHTTPTunnel(ctx, dest, targetAddr, user, dialer, header, firstPayload)
 		if netConn != nil {
